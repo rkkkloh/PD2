@@ -16,18 +16,19 @@ public class HtmlParser {
         try {
             if (mode.equals("0")) {
                 crawlAndAppendData();
-            }
-            //sortDataRows("data.csv");
-            if (mode.equals("1")) {
+                sortDataRows("data.csv");
+            } else if (mode.equals("1")) {
                 String task = args[1];
                 if (task.equals("0")){
                     task_0();
                 } else if (task.equals("1")) {
-
+                    String stock = args[2];
+                    String start = args[3];
+                    String end = args[4];
+                    task_1(stock, start, end);
+                    
                 }
-                //String stock = args[2];
-                //String start = args[3];
-                //String end = args[4];
+                
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -42,21 +43,39 @@ public class HtmlParser {
         String title = doc.title();
         List<String> pricesList = new ArrayList<>();
 
-        for (Element row : rows) {
-            Elements datas = row.select("td");
-            for (int i = 0; i < datas.size(); i++) {
-                    pricesList.add(datas.get(i).text());
+        if (!check(title)) {
+            for (Element row : rows) {
+                Elements datas = row.select("td");
+                for (int i = 0; i < datas.size(); i++) {
+                        pricesList.add(datas.get(i).text());
+                }
+            }
+    
+            // Append to data.csv
+            FileWriter writer = new FileWriter("data.csv", true);
+            writer.append(title + " ");
+            for (int i = 0; i < pricesList.size(); i++) {
+                writer.append(pricesList.get(i));
+
+                if ( i < pricesList.size() - 1) {
+                    writer.append(",");
+                }
+            }
+            writer.append("\n");
+            writer.close();
+        }
+    }
+
+    private static Boolean check(String title) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader("data.csv"));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            line = line.trim().split(" ")[0];
+            if (title.equals(line)) {
+                return true;
             }
         }
-
-        // Append to data.csv
-        FileWriter writer = new FileWriter("data.csv", true);
-        writer.append(title + " ");
-        for (String price : pricesList) {
-            writer.append(price).append(",");
-        }
-        writer.append("\n");
-        writer.close();
+        return false;
     }
 
     private static void task_0() throws IOException {
@@ -72,8 +91,8 @@ public class HtmlParser {
             }
         }
 
-        // Append to output.txt
-        FileWriter writer = new FileWriter("output.txt",true);
+        // Append to output.csv
+        FileWriter writer = new FileWriter("output.csv",true);
         for (String stock : stockList) {
             writer.append(stock).append(",");
         }
@@ -87,6 +106,71 @@ public class HtmlParser {
         }
         reader.close();
         writer.close();
+    }
+
+    private static void task_1(String stock, String start, String end) throws IOException {
+        List<Double> movingAverage = new ArrayList<>();
+        Document doc = Jsoup.connect("https://pd2-hw3.netdb.csie.ncku.edu.tw/").get();
+        Elements rows = doc.select("table tr");
+
+        List<String> stockList = new ArrayList<>();
+
+        for (Element row : rows) {
+            Elements stocks = row.select("th");
+            for (int i = 0; i < stocks.size(); i++) {
+                stockList.add(stocks.get(i).text());
+            }
+        }
+
+        double sum = 0;
+        int startingDay = Integer.parseInt(start);
+        int endingDay = Integer.parseInt(end);
+        int timeFrame = endingDay - startingDay + 1;
+
+        BufferedReader reader = new BufferedReader(new FileReader("data.csv"));
+        List<String> fileContent = new ArrayList<>();
+        String line = null;
+        String matchedLine = null;
+
+        while ((line = reader.readLine()) != null) {
+            fileContent.add(line);
+        }
+
+
+        for (int i = 0; i < timeFrame - 4; i++) {
+            for (int j = 0;j < 5; j++) {
+
+                for (String currentLine : fileContent) {
+                    matchedLine = currentLine;
+                    if (currentLine.split(" ")[0].substring(3).equals(startingDay)) {
+                        break;
+                    }
+                }
+
+                //if (matchedLine != null) {
+                    String[] data = matchedLine.split(" ")[1].split(",");
+                    int stockDataIndex = stockList.indexOf(stock);
+
+                    sum += Integer.parseInt(data[stockDataIndex]);
+                    startingDay++;
+                //}
+            }
+            movingAverage.add(sum/5);
+            System.out.println(sum/5);
+        }
+        reader.close();
+
+        FileWriter writer = new FileWriter("output.csv",true);
+        writer.append(stock + "," + start + "," + end).append("\n");
+        for (int i = 0; i < movingAverage.size(); i++) {
+            writer.append(Double.toString(movingAverage.get(i)));
+            System.out.println(Double.toString(movingAverage.get(i)));
+            if (i < movingAverage.size() - 1) {
+                writer.append(",");
+            }
+        }
+        writer.close();
+
     }
 
     public static void sortDataRows(String filename) throws IOException {
@@ -122,6 +206,5 @@ public class HtmlParser {
         writer.close();
     }
 }
-
 
 
