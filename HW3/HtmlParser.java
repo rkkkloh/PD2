@@ -131,32 +131,40 @@ public class HtmlParser {
         List<String> fileContent = new ArrayList<>();
         String line = null;
         String matchedLine = null;
+        String temp = null;
 
         while ((line = reader.readLine()) != null) {
             fileContent.add(line);
         }
 
-
         for (int i = 0; i < timeFrame - 4; i++) {
+            temp = start;
             for (int j = 0;j < 5; j++) {
-
-                for (String currentLine : fileContent) {
-                    matchedLine = currentLine;
-                    if (currentLine.split(" ")[0].substring(3).equals(startingDay)) {
+ 
+                for (int k = 0; k < fileContent.size(); k++) {
+                    matchedLine = fileContent.get(k);
+                    if (fileContent.get(k).split(" ")[0].substring(3).equals(temp)) {
                         break;
                     }
                 }
 
-                //if (matchedLine != null) {
+                //System.out.println(matchedLine);
+                
+                if (matchedLine != null) {
                     String[] data = matchedLine.split(" ")[1].split(",");
+ 
                     int stockDataIndex = stockList.indexOf(stock);
 
-                    sum += Integer.parseInt(data[stockDataIndex]);
-                    startingDay++;
-                //}
+                    sum += Double.parseDouble(data[stockDataIndex]);
+
+                    temp = Integer.toString((Integer.parseInt(temp)) + 1);
+                } 
             }
+            start = Integer.toString(++startingDay);
+            //System.out.println(sum);
             movingAverage.add(sum/5);
-            System.out.println(sum/5);
+            sum = 0;
+            //System.out.println(sum/5);
         }
         reader.close();
 
@@ -164,7 +172,7 @@ public class HtmlParser {
         writer.append(stock + "," + start + "," + end).append("\n");
         for (int i = 0; i < movingAverage.size(); i++) {
             writer.append(Double.toString(movingAverage.get(i)));
-            System.out.println(Double.toString(movingAverage.get(i)));
+            //System.out.println(Double.toString(movingAverage.get(i)));
             if (i < movingAverage.size() - 1) {
                 writer.append(",");
             }
