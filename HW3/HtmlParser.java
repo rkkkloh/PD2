@@ -105,7 +105,7 @@ public class HtmlParser {
         for (int i = 0; i < 30; i++) {
             String line = reader.readLine();
             //System.out.println(line);
-            writer.append(line).append("\n");
+            writer.append(line.split(" ")[1]).append("\n");
         }
         reader.close();
         writer.close();
