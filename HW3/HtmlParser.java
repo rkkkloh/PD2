@@ -25,6 +25,9 @@ public class HtmlParser {
                     String stock = args[2];
                     String start = args[3];
                     String end = args[4];
+                    FileWriter writer = new FileWriter("output.csv",true);
+                    writer.append(stock + "," + start + "," + end).append("\n");
+                    writer.close();
                     task_1(stock, start, end);
                     
                 }
@@ -132,6 +135,7 @@ public class HtmlParser {
         String line = null;
         String matchedLine = null;
         String temp = null;
+        double result;
 
         while ((line = reader.readLine()) != null) {
             fileContent.add(line);
@@ -162,14 +166,14 @@ public class HtmlParser {
             }
             start = Integer.toString(++startingDay);
             //System.out.println(sum);
-            movingAverage.add(sum/5);
+            result = roundToTwoDecimalPlaces(sum/5);
+            movingAverage.add(result);
             sum = 0;
             //System.out.println(sum/5);
         }
         reader.close();
 
         FileWriter writer = new FileWriter("output.csv",true);
-        writer.append(stock + "," + start + "," + end).append("\n");
         for (int i = 0; i < movingAverage.size(); i++) {
             writer.append(Double.toString(movingAverage.get(i)));
             //System.out.println(Double.toString(movingAverage.get(i)));
@@ -179,6 +183,16 @@ public class HtmlParser {
         }
         writer.close();
 
+    }
+
+    public static double roundToTwoDecimalPlaces(double number) {
+        long roundedValue = round(number * 100);
+
+        return (double) roundedValue / 100;
+    }
+
+    public static long round(double number) {
+        return number >= 0 ? (long) (number + 0.5) : (long) (number - 0.5);
     }
 
     public static void sortDataRows(String filename) throws IOException {
