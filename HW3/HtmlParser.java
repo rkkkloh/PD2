@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.Collections;
 
 public class HtmlParser {
     public static void main(String[] args) {
@@ -17,7 +18,7 @@ public class HtmlParser {
             if (mode.equals("0")) {
                 FileWriter writer = new FileWriter("data.csv", true);
                 crawlAndAppendData();
-                //sortDataRows("data.csv");
+                sortDataRows("data.csv");
             } else if (mode.equals("1")) {
                 String task = args[1];
                 if (task.equals("0")){
@@ -31,6 +32,21 @@ public class HtmlParser {
                     writer.close();
                     task_1(stock, start, end);
                     
+                } else if (task.equals("2")) {
+                    String stock = args[2];
+                    String start = args[3];
+                    String end = args[4];
+                    task_2(stock, start, end);
+                } else if (task.equals("3")) {
+                    String stock = args[2];
+                    String start = args[3];
+                    String end = args[4];
+                    task_3(stock, start, end);
+                } else if (task.equals("4")) {
+                    String stock = args[2];
+                    String start = args[3];
+                    String end = args[4];
+                    task_4(stock, start, end);
                 }
                 
             }
@@ -125,17 +141,8 @@ public class HtmlParser {
 
     private static void task_1(String stock, String start, String end) throws IOException {
         List<Double> movingAverage = new ArrayList<>();
-        Document doc = Jsoup.connect("https://pd2-hw3.netdb.csie.ncku.edu.tw/").get();
-        Elements rows = doc.select("table tr");
 
-        List<String> stockList = new ArrayList<>();
-
-        for (Element row : rows) {
-            Elements stocks = row.select("th");
-            for (int i = 0; i < stocks.size(); i++) {
-                stockList.add(stocks.get(i).text());
-            }
-        }
+        List<String> stockList = getStockList();
 
         double sum = 0;
         int startingDay = Integer.parseInt(start);
@@ -186,15 +193,199 @@ public class HtmlParser {
         reader.close();
 
         FileWriter writer = new FileWriter("output.csv",true);
+        String checkedMovingAverage;
         for (int i = 0; i < movingAverage.size(); i++) {
-            writer.append(Double.toString(movingAverage.get(i)));
+            checkedMovingAverage = checkDecimalPlaces(movingAverage.get(i));
+            writer.append(checkedMovingAverage);
             //System.out.println(Double.toString(movingAverage.get(i)));
             if (i < movingAverage.size() - 1) {
                 writer.append(",");
+            } else {
+                writer.append("\n");
             }
         }
         writer.close();
 
+    }
+
+    public static void task_2(String stock, String start, String end) throws IOException {
+        int startingDay = Integer.parseInt(start);
+        int endingDay = Integer.parseInt(end);
+        int timeFrame = endingDay - startingDay + 1;
+        List<String> fileContent = new ArrayList<>();
+        String line;
+        BufferedReader reader = new BufferedReader(new FileReader("data.csv"));
+        double sum = 0;
+        double average = 0;
+        double sumOfSubtraction = 0;
+        String matchedLine = null;
+        String temp;
+
+        List<String> stockList = getStockList();
+
+        while ((line = reader.readLine()) != null) {
+            fileContent.add(line);
+        }
+        reader.close();
+
+        temp = start;
+
+        for (int i = 0; i < timeFrame; i++) {
+            for (int j = 0; j < fileContent.size(); j++) {
+                matchedLine = fileContent.get(j);
+                if (fileContent.get(j).split(" ")[0].substring(3).equals(temp)) {
+                    break;
+                }
+            }
+            
+            if (matchedLine != null) {
+                String[] data = matchedLine.split(" ")[1].split(",");
+
+                int stockDataIndex = stockList.indexOf(stock);
+
+                sum += Double.parseDouble(data[stockDataIndex]);
+
+                temp = Integer.toString((Integer.parseInt(temp)) + 1);
+            }
+        }
+        average = sum/timeFrame;
+
+        temp = start;
+        for (int i = 0; i < timeFrame; i++) {
+            for (int j = 0; j < fileContent.size(); j++) {
+                matchedLine = fileContent.get(j);
+                if (fileContent.get(j).split(" ")[0].substring(3).equals(temp)) {
+                    break;
+                }
+            }
+            
+            if (matchedLine != null) {
+                String[] data = matchedLine.split(" ")[1].split(",");
+
+                int stockDataIndex = stockList.indexOf(stock);
+
+                sumOfSubtraction += ((Double.parseDouble(data[stockDataIndex]) - average) * (Double.parseDouble(data[stockDataIndex]) - average));
+
+                temp = Integer.toString((Integer.parseInt(temp)) + 1);
+            }
+        }
+
+        double precision = 0.0001;
+        double result = roundToTwoDecimalPlaces(squareRoot(sumOfSubtraction/(timeFrame-1), precision));
+        String checkedResult = checkDecimalPlaces(result);
+
+        FileWriter writer = new FileWriter("output.csv",true);
+        writer.append(stock + "," + start + "," + end + "\n");
+        writer.append(checkedResult).append("\n");
+        writer.close();
+
+    }
+
+    public static void task_3(String doNothing, String start, String end) throws IOException{
+        List<Double> standardDeviation = new ArrayList<>();
+        int startingDay = Integer.parseInt(start);
+        int endingDay = Integer.parseInt(end);
+        int timeFrame = endingDay - startingDay + 1;
+        List<String> fileContent = new ArrayList<>();
+        String line;
+        BufferedReader reader = new BufferedReader(new FileReader("data.csv"));
+        double sum = 0;
+        double average = 0;
+        double sumOfSubtraction = 0;
+        String matchedLine = null;
+        String temp;
+
+        List<String> stockList = getStockList();
+
+        while ((line = reader.readLine()) != null) {
+            fileContent.add(line);
+        }
+        reader.close();
+        
+        for (String stock : stockList) {
+            temp = start;
+            for (int i = 0; i < timeFrame; i++) {
+                for (int j = 0; j < fileContent.size(); j++) {
+                    matchedLine = fileContent.get(j);
+                    if (fileContent.get(j).split(" ")[0].substring(3).equals(temp)) {
+                        break;
+                    }
+                }
+                
+                if (matchedLine != null) {
+                    String[] data = matchedLine.split(" ")[1].split(",");
+
+                    int stockDataIndex = stockList.indexOf(stock);
+
+                    sum += Double.parseDouble(data[stockDataIndex]);
+
+                    temp = Integer.toString((Integer.parseInt(temp)) + 1);
+                }
+            }
+            average = sum/timeFrame;
+
+            temp = start;
+            for (int i = 0; i < timeFrame; i++) {
+                for (int j = 0; j < fileContent.size(); j++) {
+                    matchedLine = fileContent.get(j);
+                    if (fileContent.get(j).split(" ")[0].substring(3).equals(temp)) {
+                        break;
+                    }
+                }
+                
+                if (matchedLine != null) {
+                    String[] data = matchedLine.split(" ")[1].split(",");
+
+                    int stockDataIndex = stockList.indexOf(stock);
+
+                    sumOfSubtraction += ((Double.parseDouble(data[stockDataIndex]) - average) * (Double.parseDouble(data[stockDataIndex]) - average));
+
+                    temp = Integer.toString((Integer.parseInt(temp)) + 1);
+                }
+            }
+
+            double precision = 0.0001;
+            double result = roundToTwoDecimalPlaces(squareRoot(sumOfSubtraction/(timeFrame-1), precision));
+            standardDeviation.add(result);
+            result = 0;
+            average = 0;
+            sum = 0;
+            sumOfSubtraction = 0;
+ 
+        }
+
+        List<Double> sortedStandardDeviation = new ArrayList<>(standardDeviation);
+        Collections.sort(sortedStandardDeviation,Collections.reverseOrder());
+        Double first = sortedStandardDeviation.get(0);
+        Double second = sortedStandardDeviation.get(1);
+        Double third = sortedStandardDeviation.get(2);
+        int index1 = standardDeviation.indexOf(first);
+        //System.out.println(standardDeviation.get(index1));
+        int index2 = standardDeviation.indexOf(second);
+        int index3 = standardDeviation.indexOf(third);
+        String First = stockList.get(index1);
+        String Second = stockList.get(index2);
+        String Third = stockList.get(index3);
+        //System.out.println(sortedStandardDeviation);
+        //System.out.println(standardDeviation);
+        String data1 = checkDecimalPlaces(first);
+        String data2 = checkDecimalPlaces(second);
+        String data3 = checkDecimalPlaces(third);
+        FileWriter writer = new FileWriter("output.csv",true);
+        writer.append(First + "," + Second + "," + Third + "," + start + "," + end +"\n");
+        writer.append(data1 + "," + data2 + "," + data3).append("\n");
+        writer.close();
+    }
+
+    public static void task_4(String stock, String start, String end) {
+        
+    }
+
+    public static String checkDecimalPlaces(double number) {
+        if ((long)number == number) {
+            return Long.toString((long)number);
+        } 
+        return Double.toString(number);
     }
 
     public static double roundToTwoDecimalPlaces(double number) {
@@ -205,6 +396,50 @@ public class HtmlParser {
 
     public static long round(double number) {
         return number >= 0 ? (long) (number + 0.5) : (long) (number - 0.5);
+    }
+
+    public static List<String> getStockList() throws IOException{
+        Document doc = Jsoup.connect("https://pd2-hw3.netdb.csie.ncku.edu.tw/").get();
+        Elements rows = doc.select("table tr");
+
+        List<String> stockList = new ArrayList<>();
+
+        for (Element row : rows) {
+            Elements stocks = row.select("th");
+            for (int i = 0; i < stocks.size(); i++) {
+                stockList.add(stocks.get(i).text());
+            }
+        }
+
+        return stockList;
+    }
+
+    public static double squareRoot(double number, double precision) {
+        double guess = number / 2; // 初始猜測值，可以任意設定，一般取一半
+        double previousGuess;
+        
+        do {
+            previousGuess = guess;
+            guess = (guess + number / guess) / 2;
+        } while (absoluteValue(guess - previousGuess) >= precision);
+
+        // 四捨五入到小數點後四位
+        return roundToFourDecimalPlaces(guess);
+    }
+
+    public static double absoluteValue(double value) {
+        if (value < 0) {
+            return -value;
+        } else {
+            return value;
+        }
+    }
+
+    public static double roundToFourDecimalPlaces(double value) {
+        double factor = 10000.0;
+        double temp = value * factor;
+        double rounded = (int) (temp + 0.5);
+        return rounded / factor;
     }
 
     public static void sortDataRows(String filename) throws IOException {
