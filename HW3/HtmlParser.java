@@ -15,8 +15,9 @@ public class HtmlParser {
         String mode = args[0];
         try {
             if (mode.equals("0")) {
+                FileWriter writer = new FileWriter("data.csv", true);
                 crawlAndAppendData();
-                sortDataRows("data.csv");
+                //sortDataRows("data.csv");
             } else if (mode.equals("1")) {
                 String task = args[1];
                 if (task.equals("0")){
@@ -78,6 +79,7 @@ public class HtmlParser {
                 return true;
             }
         }
+        reader.close();
         return false;
     }
 
@@ -96,16 +98,26 @@ public class HtmlParser {
 
         // Append to output.csv
         FileWriter writer = new FileWriter("output.csv",true);
-        for (String stock : stockList) {
-            writer.append(stock).append(",");
+
+        for (int i = 0; i < stockList.size(); i++) {
+            writer.append(stockList.get(i));
+
+            if (i < stockList.size() - 1) {
+                writer.append(",");
+            }
         }
+
         writer.append("\n");
  
         BufferedReader reader = new BufferedReader(new FileReader("data.csv"));
         for (int i = 0; i < 30; i++) {
             String line = reader.readLine();
-            //System.out.println(line);
-            writer.append(line.split(" ")[1]).append("\n");
+            writer.append(line.split(" ")[1]);
+
+            if (i < (30 - 1)) {
+                writer.append("\n");
+            }
+
         }
         reader.close();
         writer.close();
