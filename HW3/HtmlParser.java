@@ -419,11 +419,11 @@ public class HtmlParser {
         }
         average = sum/timeFrame;
 
-        int timeFrameAverage;
-        int sumOfTimeFrame = 0;
+        double timeFrameAverage;
+        double sumOfTimeFrame = 0;
         for (int i = 0; i < timeFrame; i++) {
-            sumOfTimeFrame += startingDay;
-            startingDay++;
+            sumOfTimeFrame += (double)startingDay;
+            startingDay += 1;
         }
         timeFrameAverage = sumOfTimeFrame/timeFrame;
 
@@ -441,21 +441,23 @@ public class HtmlParser {
 
                 int stockDataIndex = stockList.indexOf(stock);
 
-                sumOfMultiplication += ((Double.parseDouble(temp) - (double)timeFrameAverage)  * (Double.parseDouble(data[stockDataIndex]) - average));
+                sumOfMultiplication += (((Double.parseDouble(temp) - (double)timeFrameAverage)  * (Double.parseDouble(data[stockDataIndex]) - average)));
 
                 temp = Integer.toString((Integer.parseInt(temp)) + 1);
             }
         }
 
-        int sumOfSquare = 0;
+        double sumOfSquare = 0;
         startingDay = Integer.parseInt(start);
+        System.out.println(startingDay);
         for (int i = 0; i < timeFrame; i++) {
             sumOfSquare += (startingDay - timeFrameAverage) * (startingDay - timeFrameAverage);
-            startingDay++;
+            startingDay += 1;
         }
 
-        double result = sumOfMultiplication/sumOfSquare;
+        double result = (sumOfMultiplication)/(sumOfSquare);
         double result2 = average - (result * timeFrameAverage);
+        System.out.println(timeFrameAverage);
         result = roundToTwoDecimalPlaces(result);
 
         result2 = roundToTwoDecimalPlaces(result2);
