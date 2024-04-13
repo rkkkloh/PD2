@@ -377,8 +377,96 @@ public class HtmlParser {
         writer.close();
     }
 
-    public static void task_4(String stock, String start, String end) {
-        
+    public static void task_4(String stock, String start, String end) throws IOException{
+        int startingDay = Integer.parseInt(start);
+        int endingDay = Integer.parseInt(end);
+        int timeFrame = endingDay - startingDay + 1;
+        List<String> fileContent = new ArrayList<>();
+        String line;
+        BufferedReader reader = new BufferedReader(new FileReader("data.csv"));
+        double sum = 0;
+        double average = 0;
+        double sumOfMultiplication = 0;
+        String matchedLine = null;
+        String temp;
+
+        List<String> stockList = getStockList();
+
+        while ((line = reader.readLine()) != null) {
+            fileContent.add(line);
+        }
+        reader.close();
+
+        temp = start;
+
+        for (int i = 0; i < timeFrame; i++) {
+            for (int j = 0; j < fileContent.size(); j++) {
+                matchedLine = fileContent.get(j);
+                if (fileContent.get(j).split(" ")[0].substring(3).equals(temp)) {
+                    break;
+                }
+            }
+            
+            if (matchedLine != null) {
+                String[] data = matchedLine.split(" ")[1].split(",");
+
+                int stockDataIndex = stockList.indexOf(stock);
+
+                sum += Double.parseDouble(data[stockDataIndex]);
+
+                temp = Integer.toString((Integer.parseInt(temp)) + 1);
+            }
+        }
+        average = sum/timeFrame;
+
+        int timeFrameAverage;
+        int sumOfTimeFrame = 0;
+        for (int i = 0; i < timeFrame; i++) {
+            sumOfTimeFrame += startingDay;
+            startingDay++;
+        }
+        timeFrameAverage = sumOfTimeFrame/timeFrame;
+
+        temp = start;
+        for (int i = 0; i < timeFrame; i++) {
+            for (int j = 0; j < fileContent.size(); j++) {
+                matchedLine = fileContent.get(j);
+                if (fileContent.get(j).split(" ")[0].substring(3).equals(temp)) {
+                    break;
+                }
+            }
+            
+            if (matchedLine != null) {
+                String[] data = matchedLine.split(" ")[1].split(",");
+
+                int stockDataIndex = stockList.indexOf(stock);
+
+                sumOfMultiplication += ((Double.parseDouble(temp) - (double)timeFrameAverage)  * (Double.parseDouble(data[stockDataIndex]) - average));
+
+                temp = Integer.toString((Integer.parseInt(temp)) + 1);
+            }
+        }
+
+        int sumOfSquare = 0;
+        startingDay = Integer.parseInt(start);
+        for (int i = 0; i < timeFrame; i++) {
+            sumOfSquare += (startingDay - timeFrameAverage) * (startingDay - timeFrameAverage);
+            startingDay++;
+        }
+
+        double result = sumOfMultiplication/sumOfSquare;
+        double result2 = average - (result * timeFrameAverage);
+        result = roundToTwoDecimalPlaces(result);
+
+        result2 = roundToTwoDecimalPlaces(result2);
+        String b_1 = checkDecimalPlaces(result);
+        String b_0 = checkDecimalPlaces(result2);
+
+        FileWriter writer = new FileWriter("output.csv",true);
+        writer.append(stock + "," + start + "," + end + "\n");
+        writer.append(b_1 + "," + b_0 + "\n");
+        writer.close();
+
     }
 
     public static String checkDecimalPlaces(double number) {
