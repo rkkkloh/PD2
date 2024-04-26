@@ -19,6 +19,7 @@ public class HtmlParser {
                 FileWriter writer = new FileWriter("data.csv", true);
                 crawlAndAppendData();
                 sortDataRows("data.csv");
+                writer.close();
             } else if (mode.equals("1")) {
                 String task = args[1];
                 if (task.equals("0")){
@@ -62,6 +63,7 @@ public class HtmlParser {
         //List<String> dayList = new ArrayList<>();
         String title = doc.title();
         List<String> pricesList = new ArrayList<>();
+        System.out.println(title);
 
         if (!check(title)) {
             for (Element row : rows) {
@@ -86,7 +88,7 @@ public class HtmlParser {
         }
     }
 
-    private static Boolean check(String title) throws IOException {
+    public static Boolean check(String title) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader("data.csv"));
         String line;
         while ((line = reader.readLine()) != null) {
@@ -505,7 +507,7 @@ public class HtmlParser {
     }
 
     public static double squareRoot(double number, double precision) {
-        double guess = number / 2; // 初始猜測值，可以任意設定，一般取一半
+        double guess = number / 2;
         double previousGuess;
         
         do {
@@ -513,7 +515,6 @@ public class HtmlParser {
             guess = (guess + number / guess) / 2;
         } while (absoluteValue(guess - previousGuess) >= precision);
 
-        // 四捨五入到小數點後四位
         return roundToFourDecimalPlaces(guess);
     }
 
@@ -533,7 +534,7 @@ public class HtmlParser {
     }
 
     public static void sortDataRows(String filename) throws IOException {
-        // Read the data from the file
+
         BufferedReader reader = new BufferedReader(new FileReader(filename));
         List<String> lines = new ArrayList<>();
         String line;
@@ -542,13 +543,11 @@ public class HtmlParser {
         }
         reader.close();
 
-        // Sort the lines based on day labels without using Collections.sort()
         for (int i = 0; i < lines.size() - 1; i++) {
             for (int j = 0; j < lines.size() - i - 1; j++) {
                 String day1 = lines.get(j).split(" ")[0];
                 String day2 = lines.get(j + 1).split(" ")[0];
                 if (Integer.parseInt(day1.substring(3)) > Integer.parseInt(day2.substring(3))) {
-                    // Swap lines
                     String temp = lines.get(j);
                     lines.set(j, lines.get(j + 1));
                     lines.set(j + 1, temp);
@@ -556,7 +555,6 @@ public class HtmlParser {
             }
         }
 
-        // Write the sorted data back to the file
         BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
         for (String sortedLine : lines) {
             writer.write(sortedLine);
