@@ -2,7 +2,9 @@
 
 ## Description
 
-All updates of PD2 homework will be on here ***Snake Game***!<br>
+Learning progress in Programming Design 2...
+a lot more to go...
+All updates of PD2 homework will be on here!<br>
 
 ## Table of Contents
 - [Installation](#installation)
