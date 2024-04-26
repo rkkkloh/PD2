@@ -2,8 +2,8 @@
 
 ## Description
 
-Learning progress in Programming Design 2...
-a lot more to go...
+Learning progress in Programming Design 2...<br>
+a lot more to go...<br>
 All updates of PD2 homework will be on here!<br>
 
 ## Table of Contents
@@ -18,8 +18,8 @@ All updates of PD2 homework will be on here!<br>
 
 ## Usage
 
-[HW1](https://chuangkt.notion.site/PD2-Homework-1-3fce92cd9b504721bdefc0d214e9bad0)
-[HW2](https://chuangkt.notion.site/PD2-Homework-2-925a35651a774200896af8c51bebc9a4)
+[HW1](https://chuangkt.notion.site/PD2-Homework-1-3fce92cd9b504721bdefc0d214e9bad0)<br>
+[HW2](https://chuangkt.notion.site/PD2-Homework-2-925a35651a774200896af8c51bebc9a4)<br>
 [HW3](https://chuangkt.notion.site/PD2-Homework-3-f52f072e460d4308a60cc35d09a94e82)
 
 ## Reference
