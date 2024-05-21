@@ -17,15 +17,11 @@ public class TFIDFCalculator {
         TrieNode singleDocRoot;
         List<TrieNode> wholeDocRoot = new ArrayList<>();
         List<Integer> docSizeList = new ArrayList<>();
-        List<Double> tfidfValueSet = new ArrayList<>();
-        List<String> argumentSet = new ArrayList<>();
-        List<String> documentIndexSet = new ArrayList<>();
         int termCount = 0;
         double termFrequency;
         double idfValue;
         double tfIdfValue;
-        String existString = null;
-        String existIndex = null;
+        TrieNode wholeIdfRoot = new TrieNode();
 
         try {
             FileWriter writer = new FileWriter("output.txt");
@@ -59,21 +55,40 @@ public class TFIDFCalculator {
             StringBuilder documentContent = new StringBuilder();
             int lineCount = 0;
             String line;
+            List<String> addedString = new ArrayList<>();
+            boolean contain = false;
 
             while ((line = reader.readLine()) != null) {
 
                 line = line.toLowerCase().replaceAll("[^a-z]+"," ").trim();
-                
 
-                if (lineCount%5 == 0 && lineCount != 0) {
+                    if (lineCount%5 == 0 && lineCount != 0) {
                     documentArray = documentContent.toString().trim().split(" ");
                     singleDocRoot = new TrieNode();
+
+                    //同時處理每個文本token的trie和所有文本token的trie
                     for (String word : documentArray) {
                         insert(word,singleDocRoot);
+                        addedString.add(word);
+                        for (String token : addedString) {
+
+                            if (!(token.equals(word))) {
+                                contain = true;
+                                break;
+                            }
+                        }
+                        if (!contain) {
+                            insert(word,wholeIdfRoot);
+
+                        }
+                        contain = false;
+
+  
                     }
                     wholeDocRoot.add(singleDocRoot);
                     docSizeList.add(documentArray.length);
                     documentContent.setLength(0);
+                    addedString.clear();
                 }
 
                 documentContent.append(line).append(" ");
@@ -85,63 +100,50 @@ public class TFIDFCalculator {
             singleDocRoot = new TrieNode();
             for (String word : documentArray) {
                 insert(word,singleDocRoot);
+                addedString.add(word);
+                        for (String token : addedString) {
+                            if (!token.equals(word)) {
+                                contain = true;
+                                break;
+                            }
+                        }
+                        if (!contain) {
+                            insert(word,wholeIdfRoot);
+
+                        }
+                        contain = false;
             }
             wholeDocRoot.add(singleDocRoot);
 	        docSizeList.add(documentArray.length);
+            addedString.clear();
             reader.close();
 
         } catch (IOException e) {
+
             e.printStackTrace();
+        
         }
         try {
-            StringBuilder result = new StringBuilder();
+            String result = "";
             for (int i = 0; i < stringArgumentArray.length; i++) {
                 String argument = stringArgumentArray[i];
                 String documentIndex = documentIndexArray[i];
+                TrieNode currentRoot = wholeDocRoot.get(Integer.parseInt(documentIndex));
+                int docSize = docSizeList.get(Integer.parseInt(documentIndex));
 
-                for (String checkedArgument : argumentSet) {
-                    if (checkedArgument.equals(argument)) {
-                        existString = checkedArgument;
-                        break;
-                    }
-                }
+                termCount = getTermCount(argument, currentRoot);
 
-                for (String checkedIndex : documentIndexSet) {
-                    if (checkedIndex.equals(documentIndex)) {
-                        existIndex = checkedIndex;
-                    }
-                }
+                termFrequency = tf(termCount,docSize);
 
-                if (existIndex != null && existIndex.equals(existString) ) {
+                idfValue = idf(wholeIdfRoot,argument,wholeDocRoot.size());
 
-                    tfIdfValue = tfidfValueSet.get(Integer.parseInt(existIndex));
+                tfIdfValue = termFrequency * idfValue;
 
-                    result.append(String.format("%.5f", tfIdfValue)).append(" ");
-
-                } else {
-                    TrieNode currentRoot = wholeDocRoot.get(Integer.parseInt(documentIndex));
-                    int docSize = docSizeList.get(Integer.parseInt(documentIndex));
-
-                    termCount = getTermCount(argument, currentRoot);
-
-                    termFrequency = tf(termCount,docSize);
-
-                    idfValue = idf(wholeDocRoot,argument,wholeDocRoot.size());
-
-                    tfIdfValue = termFrequency * idfValue;
-
-                    tfidfValueSet.add(tfIdfValue);
-                
-                    argumentSet.add(argument);
-
-                    documentIndexSet.add(documentIndex);
-
-                    result.append(String.format("%.5f", tfIdfValue)).append(" ");
-                }
+                result += String.format("%.5f", tfIdfValue) + " ";
 
             }
 
-            fileOutput(result.toString());
+            fileOutput(result);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -153,13 +155,13 @@ public class TFIDFCalculator {
         return number_term_in_doc / documentSize;
     }
 
-    public static double idf(List<TrieNode> idfRoot, String term,double documentsSize) {
+    public static double idf(TrieNode idfRoot, String term,double documentsSize) {
         int count = 0;
-        for (TrieNode root : idfRoot) {
-            if (search(term,root)) {
-                count++;
-            }
+        if (search(term,idfRoot)) {
+            count = getTermCount(term, idfRoot);
         }
+        
+        System.out.println(count);
         
         return Math.log(documentsSize / count);
     }
