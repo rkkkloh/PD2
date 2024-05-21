@@ -1,5 +1,3 @@
-//package HW4;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -14,9 +12,16 @@ public class TFIDFCalculator {
         String inputDocumentIndex;
         String[] stringArgumentArray = null;
         String[] documentIndexArray = null;
-        List<String> documenList = new ArrayList<>();
+        String[] documentArray;
+        TrieNode singleDocRoot;
+        List<TrieNode> wholeDocRoot = new ArrayList<>();
+        List<Integer> docSizeList = new ArrayList<>();
+        int termCount = 0;
+        double termFrequency;
+        double idfValue;
+        double tfIdfValue;
 
-	    try {
+        try {
             FileWriter writer = new FileWriter("output.txt");
             writer.write("");
             writer.close();
@@ -55,7 +60,13 @@ public class TFIDFCalculator {
                 
 
                 if (lineCount%5 == 0 && lineCount != 0) {
-                    documenList.add(documentContent);
+                    documentArray = documentContent.trim().split(" ");
+                    singleDocRoot = new TrieNode();
+                    for (String word : documentArray) {
+                        insert(word,singleDocRoot);
+                    }
+                    wholeDocRoot.add(singleDocRoot);
+                    docSizeList.add(documentArray.length);
                     documentContent = "";
                 }
 
@@ -64,7 +75,13 @@ public class TFIDFCalculator {
 
                 
             }
-            documenList.add(documentContent);
+            documentArray = documentContent.trim().split(" ");
+            singleDocRoot = new TrieNode();
+            for (String word : documentArray) {
+                insert(word,singleDocRoot);
+            }
+            wholeDocRoot.add(singleDocRoot);
+	    docSizeList.add(documentArray.length);
             reader.close();
 
         } catch (IOException e) {
@@ -72,53 +89,24 @@ public class TFIDFCalculator {
             e.printStackTrace();
         
         }
-
-        List<String[]> documentContentArrayList = new ArrayList<>();
-        for (int i = 0; i < documentIndexArray.length; i++) {
-            String[] documentContent = documenList.get(Integer.parseInt(documentIndexArray[i])).split(" ");
-            documentContentArrayList.add(documentContent);
-        }
-
-        List<String[]> idfDocumentContentArrayList = new ArrayList<>();
-        for (int i = 0; i < documenList.size(); i++) {
-            String[] documentContent = documenList.get(i).split(" ");
-            idfDocumentContentArrayList.add(documentContent);
-        }
-
-        TrieNode wholeDocRoot;
-        List<TrieNode> idfRoot = new ArrayList<>();
-
-        for (int i = 0; i < idfDocumentContentArrayList.size(); i++) {
-            wholeDocRoot = new TrieNode();
-            for (String word : idfDocumentContentArrayList.get(i))
-                insert(word,wholeDocRoot);
-            idfRoot.add(wholeDocRoot);
-        }
-        
-        TrieNode root;
-        int termCount = 0;
-        double termFrequency;
-        double idfValue;
-        double tfIdfValue;
-
         try {
-            for (int i = 0; i < documentContentArrayList.size(); i++){
-                root = new TrieNode();
+            for (int i = 0; i < stringArgumentArray.length; i++) {
+                String argument = stringArgumentArray[i];
+                String documentIndex = documentIndexArray[i];
+                TrieNode currentRoot = wholeDocRoot.get(Integer.parseInt(documentIndex));
+                int docSize = docSizeList.get(Integer.parseInt(documentIndex));
 
-                for (int j = 0; j < documentContentArrayList.get(i).length; j++) {
-                    insert(documentContentArrayList.get(i)[j],root);
-                }
-                
-                termCount = getTermCount(stringArgumentArray[i],root);
+                termCount = getTermCount(argument, currentRoot);
 
-                termFrequency = tf(termCount,documentContentArrayList.get(i).length);
+                termFrequency = tf(termCount,docSize);
 
-                idfValue = idf(idfRoot,stringArgumentArray[i],documenList.size());
+                idfValue = idf(wholeDocRoot,argument,wholeDocRoot.size());
 
                 tfIdfValue = termFrequency * idfValue;
 
                 fileOutput(tfIdfValue);
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -178,7 +166,7 @@ public class TFIDFCalculator {
             }
         }
         return node.count;
-    }
+    }   
 }
 
 class TrieNode {
@@ -186,4 +174,3 @@ class TrieNode {
     boolean isEndOfWord = false;
     int count = 0;
 }
-
