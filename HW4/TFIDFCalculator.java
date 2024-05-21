@@ -51,9 +51,9 @@ public class TFIDFCalculator {
         // grouping content into a document
         try {
             BufferedReader reader= new BufferedReader(new FileReader("docs.txt"));
+            StringBuilder documentContent = new StringBuilder();
             int lineCount = 0;
             String line;
-            String documentContent = "";
 
             while ((line = reader.readLine()) != null) {
 
@@ -61,28 +61,28 @@ public class TFIDFCalculator {
                 
 
                 if (lineCount%5 == 0 && lineCount != 0) {
-                    documentArray = documentContent.trim().split(" ");
+                    documentArray = documentContent.toString().trim().split(" ");
                     singleDocRoot = new TrieNode();
                     for (String word : documentArray) {
                         insert(word,singleDocRoot);
                     }
                     wholeDocRoot.add(singleDocRoot);
                     docSizeList.add(documentArray.length);
-                    documentContent = "";
+                    documentContent.setLength(0);
                 }
 
-                documentContent += line + " ";
+                documentContent.append(line).append(" ");
                 lineCount++;
 
                 
             }
-            documentArray = documentContent.trim().split(" ");
+            documentArray = documentContent.toString().trim().split(" ");
             singleDocRoot = new TrieNode();
             for (String word : documentArray) {
                 insert(word,singleDocRoot);
             }
             wholeDocRoot.add(singleDocRoot);
-	    docSizeList.add(documentArray.length);
+	        docSizeList.add(documentArray.length);
             reader.close();
 
         } catch (IOException e) {
@@ -107,10 +107,10 @@ public class TFIDFCalculator {
                 tfIdfValue = termFrequency * idfValue;
 
                 result += String.format("%.5f", tfIdfValue) + " ";
-		
+
             }
-	    
-	    fileOutput(result);
+
+            fileOutput(result);
 
         } catch (IOException e) {
             e.printStackTrace();
