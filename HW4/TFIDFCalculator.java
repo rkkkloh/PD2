@@ -28,20 +28,16 @@ public class TFIDFCalculator {
         }
 
         try {
-
             BufferedReader reader = new BufferedReader(new FileReader(args[1]));
-
             stringArgumentArray = reader.readLine().split("\\s+");
             documentIndexArray = reader.readLine().split("\\s+");
-
             reader.close();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         try {
-            BufferedReader reader= new BufferedReader(new FileReader(args[0]));
+            BufferedReader reader= new BufferedReader(new FileReader("docs.txt"));
             String documentContent = "";
             int lineCount = 0;
             String line;
@@ -49,11 +45,10 @@ public class TFIDFCalculator {
             boolean contain = true;
 
             while ((line = reader.readLine()) != null) {
-
                 if (lineCount%5 == 0 && lineCount != 0) {
                     documentContent = documentContent.toLowerCase().replaceAll("[^a-z]+"," ").trim();
-                    docs.add(new ArrayList<>(Arrays.asList(documentContent.split(" "))));
-                    documentArray = documentContent.trim().split(" ");
+                    docs.add(new ArrayList<>(Arrays.asList(documentContent.split("\\s+"))));
+                    documentArray = documentContent.split("\\s+");
 
                     singleDocRoot = new Trie();
                     for (String word : documentArray) {
@@ -67,23 +62,16 @@ public class TFIDFCalculator {
                         }
                         if (contain) {
                             addedString.add(word);
-                        }
-
-                        if (contain) {
                             wholeIdfRoot.insert(word);
                         }
                         contain = true;
-
                     }
                     wholeDocRoot.add(singleDocRoot);
                     documentContent = "";
                     addedString.clear();
                 }
-
                 documentContent += line + " ";
                 lineCount++;
-
-                
             }
             documentContent = documentContent.toLowerCase().replaceAll("[^a-z]+"," ").trim();
             docs.add(new ArrayList<>(Arrays.asList(documentContent.split(" "))));
@@ -91,7 +79,6 @@ public class TFIDFCalculator {
             singleDocRoot = new Trie();
             for (String word : documentArray) {
                 singleDocRoot.insert(word);
-
                 for (String token : addedString) {
                     if ((word.equals(token))) {
                         contain = false;
@@ -100,9 +87,6 @@ public class TFIDFCalculator {
                 }
                 if (contain) {
                     addedString.add(word);
-                }
-
-                if (contain) {
                     wholeIdfRoot.insert(word);
                 }
                 contain = true;
@@ -119,6 +103,7 @@ public class TFIDFCalculator {
 
         try {
             StringBuilder result = new StringBuilder();
+
             for (int i = 0; i < stringArgumentArray.length; i++) {
                 tfIdfValue = tfIdfCalculate(docs.get(Integer.parseInt(documentIndexArray[i])),docs,stringArgumentArray[i],wholeDocRoot.get(Integer.parseInt(documentIndexArray[i])), wholeIdfRoot);
                 result.append(String.format("%.5f", tfIdfValue)).append(" ");
@@ -154,6 +139,8 @@ public class TFIDFCalculator {
             number_doc_contain_term = (int)getTermCount(term, wholeIdfRoot.root);
         }
         
+        
+
         return Math.log((double)docs.size() / number_doc_contain_term);
     }
     
@@ -200,4 +187,3 @@ class Trie {
         return node.isEndOfWord;
     }
 }
-
