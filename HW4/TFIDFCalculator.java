@@ -3,45 +3,36 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.io.FileWriter;
 
 public class TFIDFCalculator {
     public static void main(String args[]) {
-
-        String inputStringArgument;
-        String inputDocumentIndex;
+        List<List<String>> docs = new ArrayList<>();
         String[] stringArgumentArray = null;
         String[] documentIndexArray = null;
         String[] documentArray;
-        TrieNode singleDocRoot;
-        List<TrieNode> wholeDocRoot = new ArrayList<>();
-        List<Integer> docSizeList = new ArrayList<>();
-        int termCount = 0;
-        double termFrequency;
-        double idfValue;
+        Trie singleDocRoot;
+        List<Trie> wholeDocRoot = new ArrayList<>();
         double tfIdfValue;
-        TrieNode wholeIdfRoot = new TrieNode();
+        Trie wholeIdfRoot = new Trie();
+        
 
         try {
-            FileWriter writer = new FileWriter("output.txt");
+            BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"));
             writer.write("");
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        // handle input arguments
         try {
 
             BufferedReader reader = new BufferedReader(new FileReader(args[1]));
-            String line;
 
-            inputStringArgument = reader.readLine();
-            inputDocumentIndex = reader.readLine();
-
-            stringArgumentArray = inputStringArgument.split(" ");
-            documentIndexArray = inputDocumentIndex.split(" ");
+            stringArgumentArray = reader.readLine().split("\\s+");
+            documentIndexArray = reader.readLine().split("\\s+");
 
             reader.close();
 
@@ -49,73 +40,75 @@ public class TFIDFCalculator {
             e.printStackTrace();
         }
 
-        // grouping content into a document
         try {
-            BufferedReader reader= new BufferedReader(new FileReader("docs.txt"));
-            StringBuilder documentContent = new StringBuilder();
+            BufferedReader reader= new BufferedReader(new FileReader(args[0]));
+            String documentContent = "";
             int lineCount = 0;
             String line;
             List<String> addedString = new ArrayList<>();
-            boolean contain = false;
+            boolean contain = true;
 
             while ((line = reader.readLine()) != null) {
 
-                line = line.toLowerCase().replaceAll("[^a-z]+"," ").trim();
+                if (lineCount%5 == 0 && lineCount != 0) {
+                    documentContent = documentContent.toLowerCase().replaceAll("[^a-z]+"," ").trim();
+                    docs.add(new ArrayList<>(Arrays.asList(documentContent.split(" "))));
+                    documentArray = documentContent.trim().split(" ");
 
-                    if (lineCount%5 == 0 && lineCount != 0) {
-                    documentArray = documentContent.toString().trim().split(" ");
-                    singleDocRoot = new TrieNode();
-
-                    //同時處理每個文本token的trie和所有文本token的trie
+                    singleDocRoot = new Trie();
                     for (String word : documentArray) {
-                        insert(word,singleDocRoot);
-                        addedString.add(word);
-                        for (String token : addedString) {
+                        singleDocRoot.insert(word);
 
-                            if (!(token.equals(word))) {
-                                contain = true;
+                        for (String token : addedString) {
+                            if ((word.equals(token))) {
+                                contain = false;
                                 break;
                             }
                         }
-                        if (!contain) {
-                            insert(word,wholeIdfRoot);
-
+                        if (contain) {
+                            addedString.add(word);
                         }
-                        contain = false;
 
-  
+                        if (contain) {
+                            wholeIdfRoot.insert(word);
+                        }
+                        contain = true;
+
                     }
                     wholeDocRoot.add(singleDocRoot);
-                    docSizeList.add(documentArray.length);
-                    documentContent.setLength(0);
+                    documentContent = "";
                     addedString.clear();
                 }
 
-                documentContent.append(line).append(" ");
+                documentContent += line + " ";
                 lineCount++;
 
                 
             }
-            documentArray = documentContent.toString().trim().split(" ");
-            singleDocRoot = new TrieNode();
+            documentContent = documentContent.toLowerCase().replaceAll("[^a-z]+"," ").trim();
+            docs.add(new ArrayList<>(Arrays.asList(documentContent.split(" "))));
+            documentArray = documentContent.trim().split(" ");
+            singleDocRoot = new Trie();
             for (String word : documentArray) {
-                insert(word,singleDocRoot);
-                addedString.add(word);
-                        for (String token : addedString) {
-                            if (!token.equals(word)) {
-                                contain = true;
-                                break;
-                            }
-                        }
-                        if (!contain) {
-                            insert(word,wholeIdfRoot);
+                singleDocRoot.insert(word);
 
-                        }
+                for (String token : addedString) {
+                    if ((word.equals(token))) {
                         contain = false;
+                        break;
+                    }
+                }
+                if (contain) {
+                    addedString.add(word);
+                }
+
+                if (contain) {
+                    wholeIdfRoot.insert(word);
+                }
+                contain = true;
+
             }
             wholeDocRoot.add(singleDocRoot);
-	        docSizeList.add(documentArray.length);
-            addedString.clear();
             reader.close();
 
         } catch (IOException e) {
@@ -123,56 +116,68 @@ public class TFIDFCalculator {
             e.printStackTrace();
         
         }
+
         try {
-            String result = "";
+            StringBuilder result = new StringBuilder();
             for (int i = 0; i < stringArgumentArray.length; i++) {
-                String argument = stringArgumentArray[i];
-                String documentIndex = documentIndexArray[i];
-                TrieNode currentRoot = wholeDocRoot.get(Integer.parseInt(documentIndex));
-                int docSize = docSizeList.get(Integer.parseInt(documentIndex));
-
-                termCount = getTermCount(argument, currentRoot);
-
-                termFrequency = tf(termCount,docSize);
-
-                idfValue = idf(wholeIdfRoot,argument,wholeDocRoot.size());
-
-                tfIdfValue = termFrequency * idfValue;
-
-                result += String.format("%.5f", tfIdfValue) + " ";
-
+                tfIdfValue = tfIdfCalculate(docs.get(Integer.parseInt(documentIndexArray[i])),docs,stringArgumentArray[i],wholeDocRoot.get(Integer.parseInt(documentIndexArray[i])), wholeIdfRoot);
+                result.append(String.format("%.5f", tfIdfValue)).append(" ");
             }
 
-            fileOutput(result);
-
+            fileOutput(result.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
     }
 
-    public static double tf(int number_term_in_doc,double documentSize) {        
-        return number_term_in_doc / documentSize;
+    public static double getTermCount(String word, TrieNode root) {
+        TrieNode node = root;
+        for (char c : word.toCharArray()) {
+            node = node.children[c - 'a'];
+            if (node == null) {
+                return 0;
+            }
+        }
+        return node.count;
     }
 
-    public static double idf(TrieNode idfRoot, String term,double documentsSize) {
-        int count = 0;
-        if (search(term,idfRoot)) {
-            count = getTermCount(term, idfRoot);
+    public static double tf(List<String> doc, String term, Trie currentRoot) {
+        double number_term_in_doc = getTermCount(term, currentRoot.root);
+
+        return number_term_in_doc / doc.size();
+    }
+
+    public static double idf(List<List<String>> docs, String term, Trie wholeIdfRoot) {
+        int number_doc_contain_term = 0;
+
+        if (wholeIdfRoot.search(term)) {
+            number_doc_contain_term = (int)getTermCount(term, wholeIdfRoot.root);
         }
         
-        System.out.println(count);
-        
-        return Math.log(documentsSize / count);
+        return Math.log((double)docs.size() / number_doc_contain_term);
     }
     
+    public static double tfIdfCalculate(List<String> doc, List<List<String>> docs, String term,Trie currentRoot, Trie wholeIdfRoot) {
+        return tf(doc, term, currentRoot) * idf(docs, term, wholeIdfRoot);
+    }
+
     public static void fileOutput(String result) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt",true));
         writer.write(result);
         writer.close();
     }
+}
 
-    public static void insert(String word, TrieNode root) {
+class TrieNode {
+    TrieNode[] children = new TrieNode[26];
+    boolean isEndOfWord = false;
+    int count = 0;
+}
+
+class Trie {
+    TrieNode root = new TrieNode();
+
+    public void insert(String word) {
         TrieNode node = root;
         for (char c : word.toCharArray()) {
             if (node.children[c - 'a'] == null) {
@@ -184,7 +189,7 @@ public class TFIDFCalculator {
         node.count++;
     }
 
-    public static boolean search(String word, TrieNode root) {
+    public boolean search(String word) {
         TrieNode node = root;
         for (char c : word.toCharArray()) {
             node = node.children[c - 'a'];
@@ -194,21 +199,5 @@ public class TFIDFCalculator {
         }
         return node.isEndOfWord;
     }
-
-    public static int getTermCount(String word, TrieNode root) {
-        TrieNode node = root;
-        for (char c : word.toCharArray()) {
-            node = node.children[c - 'a'];
-            if (node == null) {
-                return 0;
-            }
-        }
-        return node.count;
-    }   
 }
 
-class TrieNode {
-    TrieNode[] children = new TrieNode[26];
-    boolean isEndOfWord = false;
-    int count = 0;
-}
