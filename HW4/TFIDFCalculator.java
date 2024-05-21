@@ -17,10 +17,15 @@ public class TFIDFCalculator {
         TrieNode singleDocRoot;
         List<TrieNode> wholeDocRoot = new ArrayList<>();
         List<Integer> docSizeList = new ArrayList<>();
+        List<Double> tfidfValueSet = new ArrayList<>();
+        List<String> argumentSet = new ArrayList<>();
+        List<String> documentIndexSet = new ArrayList<>();
         int termCount = 0;
         double termFrequency;
         double idfValue;
         double tfIdfValue;
+        String existString = null;
+        String existIndex = null;
 
         try {
             FileWriter writer = new FileWriter("output.txt");
@@ -86,31 +91,57 @@ public class TFIDFCalculator {
             reader.close();
 
         } catch (IOException e) {
-
             e.printStackTrace();
-        
         }
         try {
-            String result = "";
+            StringBuilder result = new StringBuilder();
             for (int i = 0; i < stringArgumentArray.length; i++) {
                 String argument = stringArgumentArray[i];
                 String documentIndex = documentIndexArray[i];
-                TrieNode currentRoot = wholeDocRoot.get(Integer.parseInt(documentIndex));
-                int docSize = docSizeList.get(Integer.parseInt(documentIndex));
 
-                termCount = getTermCount(argument, currentRoot);
+                for (String checkedArgument : argumentSet) {
+                    if (checkedArgument.equals(argument)) {
+                        existString = checkedArgument;
+                        break;
+                    }
+                }
 
-                termFrequency = tf(termCount,docSize);
+                for (String checkedIndex : documentIndexSet) {
+                    if (checkedIndex.equals(documentIndex)) {
+                        existIndex = checkedIndex;
+                    }
+                }
 
-                idfValue = idf(wholeDocRoot,argument,wholeDocRoot.size());
+                if (existIndex != null && existIndex.equals(existString) ) {
 
-                tfIdfValue = termFrequency * idfValue;
+                    tfIdfValue = tfidfValueSet.get(Integer.parseInt(existIndex));
 
-                result += String.format("%.5f", tfIdfValue) + " ";
+                    result.append(String.format("%.5f", tfIdfValue)).append(" ");
+
+                } else {
+                    TrieNode currentRoot = wholeDocRoot.get(Integer.parseInt(documentIndex));
+                    int docSize = docSizeList.get(Integer.parseInt(documentIndex));
+
+                    termCount = getTermCount(argument, currentRoot);
+
+                    termFrequency = tf(termCount,docSize);
+
+                    idfValue = idf(wholeDocRoot,argument,wholeDocRoot.size());
+
+                    tfIdfValue = termFrequency * idfValue;
+
+                    tfidfValueSet.add(tfIdfValue);
+                
+                    argumentSet.add(argument);
+
+                    documentIndexSet.add(documentIndex);
+
+                    result.append(String.format("%.5f", tfIdfValue)).append(" ");
+                }
 
             }
 
-            fileOutput(result);
+            fileOutput(result.toString());
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -179,8 +210,3 @@ class TrieNode {
     boolean isEndOfWord = false;
     int count = 0;
 }
-
-
-
-
-
