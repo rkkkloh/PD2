@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,6 +91,7 @@ public class TFIDFCalculator {
         
         }
         try {
+            String result = "";
             for (int i = 0; i < stringArgumentArray.length; i++) {
                 String argument = stringArgumentArray[i];
                 String documentIndex = documentIndexArray[i];
@@ -104,8 +106,11 @@ public class TFIDFCalculator {
 
                 tfIdfValue = termFrequency * idfValue;
 
-                fileOutput(tfIdfValue);
+                result += String.format("%.5f", tfIdfValue) + " ";
+		
             }
+	    
+	    fileOutput(result);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -128,9 +133,9 @@ public class TFIDFCalculator {
         return Math.log(documentsSize / count);
     }
     
-    public static void fileOutput(double tfIdfValue) throws IOException {
-        FileWriter writer = new FileWriter("output.txt",true);
-        writer.write(String.format("%.5f", tfIdfValue) + " ");
+    public static void fileOutput(String result) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt",true));
+        writer.write(result);
         writer.close();
     }
 
@@ -174,3 +179,8 @@ class TrieNode {
     boolean isEndOfWord = false;
     int count = 0;
 }
+
+
+
+
+
