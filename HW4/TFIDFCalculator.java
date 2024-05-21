@@ -37,38 +37,26 @@ public class TFIDFCalculator {
         }
 
         try {
-            BufferedReader reader= new BufferedReader(new FileReader("docs.txt"));
+            BufferedReader reader= new BufferedReader(new FileReader(args[0]));
             String documentContent = "";
             int lineCount = 0;
             String line;
-            List<String> addedString = new ArrayList<>();
-            boolean contain = true;
 
             while ((line = reader.readLine()) != null) {
                 if (lineCount%5 == 0 && lineCount != 0) {
                     documentContent = documentContent.toLowerCase().replaceAll("[^a-z]+"," ").trim();
-                    docs.add(new ArrayList<>(Arrays.asList(documentContent.split("\\s+"))));
-                    documentArray = documentContent.split("\\s+");
+                    docs.add(new ArrayList<>(Arrays.asList(documentContent.split(" "))));
+                    documentArray = documentContent.split(" ");
 
                     singleDocRoot = new Trie();
                     for (String word : documentArray) {
-                        singleDocRoot.insert(word);
-
-                        for (String token : addedString) {
-                            if ((word.equals(token))) {
-                                contain = false;
-                                break;
-                            }
-                        }
-                        if (contain) {
-                            addedString.add(word);
+                        if (!(singleDocRoot.search(word))){
                             wholeIdfRoot.insert(word);
                         }
-                        contain = true;
+                        singleDocRoot.insert(word);
                     }
                     wholeDocRoot.add(singleDocRoot);
                     documentContent = "";
-                    addedString.clear();
                 }
                 documentContent += line + " ";
                 lineCount++;
@@ -78,18 +66,10 @@ public class TFIDFCalculator {
             documentArray = documentContent.trim().split(" ");
             singleDocRoot = new Trie();
             for (String word : documentArray) {
-                singleDocRoot.insert(word);
-                for (String token : addedString) {
-                    if ((word.equals(token))) {
-                        contain = false;
-                        break;
-                    }
-                }
-                if (contain) {
-                    addedString.add(word);
+                if (!(singleDocRoot.search(word))){
                     wholeIdfRoot.insert(word);
                 }
-                contain = true;
+                singleDocRoot.insert(word);
 
             }
             wholeDocRoot.add(singleDocRoot);
@@ -102,14 +82,10 @@ public class TFIDFCalculator {
         }
 
         try {
-            StringBuilder result = new StringBuilder();
-
             for (int i = 0; i < stringArgumentArray.length; i++) {
                 tfIdfValue = tfIdfCalculate(docs.get(Integer.parseInt(documentIndexArray[i])),docs,stringArgumentArray[i],wholeDocRoot.get(Integer.parseInt(documentIndexArray[i])), wholeIdfRoot);
-                result.append(String.format("%.5f", tfIdfValue)).append(" ");
+                fileOutput(tfIdfValue);
             }
-
-            fileOutput(result.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -138,8 +114,6 @@ public class TFIDFCalculator {
         if (wholeIdfRoot.search(term)) {
             number_doc_contain_term = (int)getTermCount(term, wholeIdfRoot.root);
         }
-        
-        
 
         return Math.log((double)docs.size() / number_doc_contain_term);
     }
@@ -148,11 +122,12 @@ public class TFIDFCalculator {
         return tf(doc, term, currentRoot) * idf(docs, term, wholeIdfRoot);
     }
 
-    public static void fileOutput(String result) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt",true));
-        writer.write(result);
+    public static void fileOutput(double tfIdfValue) throws IOException {
+        FileWriter writer = new FileWriter("output.txt",true);
+        writer.write(String.format("%.5f", tfIdfValue) + " ");
         writer.close();
     }
+
 }
 
 class TrieNode {
