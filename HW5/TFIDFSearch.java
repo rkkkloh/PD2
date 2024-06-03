@@ -12,6 +12,9 @@ import java.io.ObjectInputStream;
 import java.util.Collections;
 import java.io.Serializable;
 import java.io.StringReader;
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class TFIDFSearch {
     public static void main(String[] args) {
@@ -32,7 +35,7 @@ public class TFIDFSearch {
             ois.close();
             fis.close();
             
-            BufferedReader reader = new BufferedReader(new StringReader(indexer.documentContent));
+            BufferedReader reader = new BufferedReader(new StringReader(indexer.documentContent.toString()));
             String documentContent = "";
             int lineCount = 0;
             String line;
@@ -49,7 +52,6 @@ public class TFIDFSearch {
                         }
                         singleDocRoot.insert(word);
                     }
-                    singleDocRoot.index = lineCount/5 - 1;
                     wholeDocRoot.add(singleDocRoot);
                     documentContent = "";
                 }
@@ -66,7 +68,6 @@ public class TFIDFSearch {
                 }
                 singleDocRoot.insert(word);
             }
-            singleDocRoot.index = lineCount/5 - 1;
             wholeDocRoot.add(singleDocRoot);
             reader.close();
 
@@ -84,9 +85,11 @@ public class TFIDFSearch {
             boolean containsAll;
             boolean containsAny;
             boolean contains;
+            double totalTfIdfValue = 0;
+            Map<String,Double> andHashMap = new HashMap<>();
+            Map<String,Double> orHashMap = new HashMap<>();
 
             while ((argument = argumentReader.readLine()) != null) {
-                //argument = argumentReader.readLine();
                 if (argument.contains("AND")) {
                     stringArgumentArray = argument.replaceAll("[ AND ]+", " ").split(" ");
                     for (int i = 0; i < wholeDocRoot.size(); i++) {
@@ -100,10 +103,18 @@ public class TFIDFSearch {
                         
                         if (containsAll) {
                             for (String token : stringArgumentArray) {
-                                tfIdfValue += tfIdfCalculate(docs.get(i), docs, token, wholeDocRoot.get(i), wholeIdfRoot);
+                                if (andHashMap.containsKey(token)) {
+                                    tfIdfValue = andHashMap.get(token);
+                                    totalTfIdfValue += tfIdfValue;
+                                } else {
+                                    tfIdfValue = tfIdfCalculate(docs.get(i), docs, token, wholeDocRoot.get(i), wholeIdfRoot);
+                                    totalTfIdfValue += tfIdfValue;
+                                    andHashMap.put(token,tfIdfValue);
+                                }
                             }
-                            tfIdfList.add(new TfIdf(tfIdfValue, i));
-                            tfIdfValue = 0;
+                            tfIdfList.add(new TfIdf(totalTfIdfValue, i));
+                            andHashMap.clear();
+                            totalTfIdfValue = 0;
                         }
                     }
                 } else if (argument.contains("OR")) {
@@ -119,10 +130,19 @@ public class TFIDFSearch {
                         
                         if (containsAny) {
                             for (String token : stringArgumentArray) {
-                                tfIdfValue += tfIdfCalculate(docs.get(i), docs, token, wholeDocRoot.get(i), wholeIdfRoot);
+                                if (orHashMap.containsKey(token)) {
+                                    tfIdfValue = orHashMap.get(token);
+                                    totalTfIdfValue += tfIdfValue;
+                                } else {
+                                    tfIdfValue = tfIdfCalculate(docs.get(i), docs, token, wholeDocRoot.get(i), wholeIdfRoot);
+                                    totalTfIdfValue += tfIdfValue;
+                                    orHashMap.put(token,tfIdfValue);
+                                }
+                                
                             }
-                            tfIdfList.add(new TfIdf(tfIdfValue, i));
-                            tfIdfValue = 0;
+                            tfIdfList.add(new TfIdf(totalTfIdfValue, i));
+                            totalTfIdfValue = 0;
+                            orHashMap.clear();
                         }
                     }
                 } else {
@@ -132,7 +152,6 @@ public class TFIDFSearch {
                         if (wholeDocRoot.get(i).search(argument)) {
                             contains = true;
                         }
-                        
                         
                         if (contains) {
                             tfIdfValue = tfIdfCalculate(docs.get(i), docs, argument, wholeDocRoot.get(i), wholeIdfRoot);
@@ -168,6 +187,7 @@ public class TFIDFSearch {
                 writer.write("\n");
                 writer.close();
                 tfIdfList.clear();
+
             }
             
             argumentReader.close();
