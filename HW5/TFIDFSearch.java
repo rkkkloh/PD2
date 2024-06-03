@@ -36,7 +36,7 @@ public class TFIDFSearch {
             ois.close();
             fis.close();
             
-            BufferedReader reader = new BufferedReader(new StringReader(indexer.documentContent.toString()));
+            BufferedReader reader = new BufferedReader(new StringReader(indexer.documentContent.toString));
             String documentContent = "";
             int lineCount = 0;
             String line;
@@ -92,8 +92,6 @@ public class TFIDFSearch {
             HashSet<Integer> singleTokenIDSet = new HashSet<>();
 
             while ((argument = argumentReader.readLine()) != null) {
-                //argument = argumentReader.readLine();
-                
                 if (argument.contains("AND")) {
                     stringArgumentArray = argument.replaceAll("[ AND ]+", " ").split(" ");
             
@@ -131,7 +129,9 @@ public class TFIDFSearch {
                             andHashMap.clear();
                             totalTfIdfValue = 0;
                         }
+                        tokenSetList.clear();
                     }
+                    contain = true;
                 } else if (argument.contains("OR")) {
                     stringArgumentArray = argument.replaceAll("[ OR ]+", " ").split(" ");
                     
@@ -161,6 +161,7 @@ public class TFIDFSearch {
                         }
                     }
                     orTokenIDSet.clear();
+                    contain = true;
                 } else {
                     if (wholeIdfRoot.search(argument)) {
                         for (int j = 0;j < wholeIdfRoot.getDocID(argument).size(); j++) {
@@ -177,6 +178,7 @@ public class TFIDFSearch {
                             tfIdfValue = 0;
                         }
                     }
+		            singleTokenIDSet.clear();
                 }
 
                 Collections.sort(tfIdfList, (a, b) -> {
