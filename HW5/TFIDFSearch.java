@@ -32,7 +32,7 @@ public class TFIDFSearch {
             ois.close();
             fis.close();
             
-            BufferedReader reader = new BufferedReader(new StringReader(indexer.documentContent.toString()));
+            BufferedReader reader = new BufferedReader(new StringReader(indexer.documentContent));
             String documentContent = "";
             int lineCount = 0;
             String line;
@@ -68,8 +68,6 @@ public class TFIDFSearch {
             }
             singleDocRoot.index = lineCount/5 - 1;
             wholeDocRoot.add(singleDocRoot);
-            System.out.println(docs.size());
-            System.out.println(wholeDocRoot.size());
             reader.close();
 
         } catch (IOException e) {
@@ -88,7 +86,7 @@ public class TFIDFSearch {
             boolean contains;
 
             while ((argument = argumentReader.readLine()) != null) {
-                argument = argumentReader.readLine();
+                //argument = argumentReader.readLine();
                 if (argument.contains("AND")) {
                     stringArgumentArray = argument.replaceAll("[ AND ]+", " ").split(" ");
                     for (int i = 0; i < wholeDocRoot.size(); i++) {
@@ -105,6 +103,7 @@ public class TFIDFSearch {
                                 tfIdfValue += tfIdfCalculate(docs.get(i), docs, token, wholeDocRoot.get(i), wholeIdfRoot);
                             }
                             tfIdfList.add(new TfIdf(tfIdfValue, i));
+                            tfIdfValue = 0;
                         }
                     }
                 } else if (argument.contains("OR")) {
@@ -123,6 +122,7 @@ public class TFIDFSearch {
                                 tfIdfValue += tfIdfCalculate(docs.get(i), docs, token, wholeDocRoot.get(i), wholeIdfRoot);
                             }
                             tfIdfList.add(new TfIdf(tfIdfValue, i));
+                            tfIdfValue = 0;
                         }
                     }
                 } else {
@@ -135,39 +135,41 @@ public class TFIDFSearch {
                         
                         
                         if (contains) {
-                            tfIdfValue += tfIdfCalculate(docs.get(i), docs, argument, wholeDocRoot.get(i), wholeIdfRoot);
+                            tfIdfValue = tfIdfCalculate(docs.get(i), docs, argument, wholeDocRoot.get(i), wholeIdfRoot);
                             tfIdfList.add(new TfIdf(tfIdfValue, i));
+                            tfIdfValue = 0;
                         }
                     }
                 }
-            }
 
-            Collections.sort(tfIdfList, (a, b) -> {
-                if (Double.compare(b.tfIdfValue, a.tfIdfValue) == 0) {
-                    return Integer.compare(a.index, b.index);
+                Collections.sort(tfIdfList, (a, b) -> {
+                    if (Double.compare(b.tfIdfValue, a.tfIdfValue) == 0) {
+                        return Integer.compare(a.index, b.index);
+                    } else {
+                        return Double.compare(b.tfIdfValue, a.tfIdfValue);
+                    }
+                });
+    
+                FileWriter writer = new FileWriter("output.txt", true);
+                
+                if (requestQuantity < tfIdfList.size()) {
+                    for (int i = 0; i < requestQuantity; i++) {
+                        writer.write(tfIdfList.get(i).index + " ");
+                    }
                 } else {
-                    return Double.compare(b.tfIdfValue, a.tfIdfValue);
+                    for (TfIdf info : tfIdfList) {
+                        writer.write(info.index + " ");
+                    }
+    
+                    for (int i = 0; i < (requestQuantity-tfIdfList.size()); i++) {
+                        writer.write("-1 ");
+                    }
                 }
-            });
-
-            FileWriter writer = new FileWriter("output.txt", true);
-            
-            if (requestQuantity < tfIdfList.size()) {
-                for (int i = 0; i < requestQuantity; i++) {
-                    writer.write(tfIdfList.get(i).index + " ");
-                }
-            } else {
-                for (TfIdf info : tfIdfList) {
-                    writer.write(info.index + " ");
-                }
-
-                for (int i = 0; i < (requestQuantity-tfIdfList.size()); i++) {
-                    writer.write("-1 ");
-                }
+                writer.write("\n");
+                writer.close();
+                tfIdfList.clear();
             }
-
-            writer.write("\n");
-            writer.close();
+            
             argumentReader.close();
 
         } catch (IOException e) {
