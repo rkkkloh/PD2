@@ -91,7 +91,9 @@ public class TFIDFSearch {
             HashSet<Integer> orTokenIDSet = new HashSet<>();
             HashSet<Integer> singleTokenIDSet = new HashSet<>();
 
-            while ((argument = argumentReader.readLine()) != null) {                
+            while ((argument = argumentReader.readLine()) != null) {
+                //argument = argumentReader.readLine();
+                
                 if (argument.contains("AND")) {
                     stringArgumentArray = argument.replaceAll("[ AND ]+", " ").split(" ");
             
@@ -103,11 +105,11 @@ public class TFIDFSearch {
                             }
                             tokenSetList.add(tokenIDSet);
                         } else {
-                            contain = false;
+                                break;
                         }
                     }
 
-                    if (contain) {
+                    if (stringArgumentArray.length == tokenSetList.size()) {
                         HashSet<Integer> intersection = new HashSet<>(tokenSetList.get(0));
 
                         for (int i = 0; i < tokenSetList.size(); i++) {
@@ -130,7 +132,6 @@ public class TFIDFSearch {
                             totalTfIdfValue = 0;
                         }
                     }
-                    contain = true;
                 } else if (argument.contains("OR")) {
                     stringArgumentArray = argument.replaceAll("[ OR ]+", " ").split(" ");
                     
@@ -139,16 +140,14 @@ public class TFIDFSearch {
                             for (int j = 0;j < wholeIdfRoot.getDocID(token).size(); j++) {
                                 orTokenIDSet.add(wholeIdfRoot.getDocID(token).get(j));
                             }
-                        } else {
-                            contain = false;
                         }
                     }
                     
-                    if (contain) {
+                    if (orTokenIDSet.size() != 0) {
                         for (Integer docID : orTokenIDSet) {
                             for (String token : stringArgumentArray) {
                                 if (orHashMap.containsKey(token)) {
-                                    tfIdfValue = andHashMap.get(token);
+                                    tfIdfValue = orHashMap.get(token);
                                     totalTfIdfValue += tfIdfValue;
                                 } else {
                                     tfIdfValue = tfIdfCalculate(docs.get(docID), docs, token, wholeDocRoot.get(docID), wholeIdfRoot);
@@ -161,7 +160,7 @@ public class TFIDFSearch {
                             totalTfIdfValue = 0;
                         }
                     }
-                    contain = true;
+                    orTokenIDSet.clear();
                 } else {
                     if (wholeIdfRoot.search(argument)) {
                         for (int j = 0;j < wholeIdfRoot.getDocID(argument).size(); j++) {
@@ -262,7 +261,6 @@ class TrieNode implements Serializable {
 
 class Trie implements Serializable {
     TrieNode root = new TrieNode();
-    int index;
 
     public void insert(String word, Integer ID) {
         TrieNode node = root;
