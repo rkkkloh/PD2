@@ -85,6 +85,17 @@ public class TFIDFSearch {
 
                     for (String token : stringArgumentArray) {
                         if (wholeIdfRoot.search(token)) {
+                            HashSet<Integer> tokenIDSet = new HashSet<>();
+                            for (int j = 0;j < wholeIdfRoot.getDocID(token).size(); j++) {
+                                if (!stringArgumentSet.contains(token)) {
+                                    tokenIDSet.add(wholeIdfRoot.getDocID(token).get(j));
+                                } else {
+                                    break;
+                                }
+                            }
+                            if (tokenIDSet.size() != 0) {
+                                tokenSetList.add(tokenIDSet);
+                            }
                             stringArgumentSet.add(token);
                         } else {
                             containsAll = false;
@@ -93,15 +104,6 @@ public class TFIDFSearch {
                     }
 
                     if (containsAll) {
-                        for (String token : stringArgumentSet) {
-                            HashSet<Integer> tokenIDSet = new HashSet<>();
-                            for (int j = 0;j < wholeIdfRoot.getDocID(token).size(); j++) {
-                                tokenIDSet.add(wholeIdfRoot.getDocID(token).get(j));
-                            }
-                            tokenSetList.add(tokenIDSet);
-                            
-                        }
-
                         HashSet<Integer> intersection = new HashSet<>(tokenSetList.get(0));
 
                         for (int i = 0; i < tokenSetList.size(); i++) {
@@ -123,9 +125,9 @@ public class TFIDFSearch {
                             andHashMap.clear();
                             totalTfIdfValue = 0;
                         }
-                        intersection.clear();
-                        tokenSetList.clear();
+                        intersection.clear();    
                     }
+                    tokenSetList.clear();
                     stringArgumentSet.clear();
                     containsAll = true;
                 } else if (argument.contains("OR")) {
@@ -133,13 +135,14 @@ public class TFIDFSearch {
                     
                     for (String token : stringArgumentArray) {
                         if (wholeIdfRoot.search(token)) {
+                            for (int j = 0;j < wholeIdfRoot.getDocID(token).size(); j++) {
+                                if (!stringArgumentSet.contains(token)) {
+                                    orTokenIDSet.add(wholeIdfRoot.getDocID(token).get(j));
+                                } else {
+                                    break;
+                                }
+                            }
                             stringArgumentSet.add(token);
-                        }
-                    }
-
-                    for (String token : stringArgumentSet) {
-                        for (int j = 0;j < wholeIdfRoot.getDocID(token).size(); j++) {
-                            orTokenIDSet.add(wholeIdfRoot.getDocID(token).get(j));
                         }
                     }
 
