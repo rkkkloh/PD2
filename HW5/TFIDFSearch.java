@@ -18,7 +18,7 @@ import java.io.BufferedWriter;
 public class TFIDFSearch {
     public static void main(String[] args) {
         String corpusIndex = args[0].substring("corpus".length());
-        List<List<String>> docs = new ArrayList<>();
+        List<Integer> docSizeList = new ArrayList<>();
         String[] stringArgumentArray = null;
         String[] documentArray;
         double tfIdfValue = 0;
@@ -38,8 +38,8 @@ public class TFIDFSearch {
 
             while ((line = reader.readLine()) != null) {
                 if (lineCount%5 == 0 && lineCount != 0) {
-                    docs.add(new ArrayList<>(Arrays.asList(documentContent.split(" "))));
                     documentArray = documentContent.split(" ");
+                    docSizeList.add(documentArray.length);
 
                     for (String word : documentArray) {
                         wholeIdfRoot.insert(word,lineCount/5 - 1);
@@ -49,8 +49,8 @@ public class TFIDFSearch {
                 documentContent += line + " ";
                 lineCount++;
             }
-            docs.add(new ArrayList<>(Arrays.asList(documentContent.split(" "))));
             documentArray = documentContent.split(" ");
+            docSizeList.add(documentArray.length);
 
             for (String word : documentArray) {
                 wholeIdfRoot.insert(word,lineCount/5 - 1);
@@ -114,7 +114,7 @@ public class TFIDFSearch {
                                     tfIdfValue = andHashMap.get(token);
                                     totalTfIdfValue += tfIdfValue;
                                 } else {
-                                    tfIdfValue = tfIdfCalculate(docs.get(docID), docs, token, getRepeatTermCount(token,wholeIdfRoot, docID), wholeIdfRoot);
+                                    tfIdfValue = tfIdfCalculate(docSizeList.get(docID), docSizeList.size(), token, getRepeatTermCount(token,wholeIdfRoot, docID), wholeIdfRoot);
                                     totalTfIdfValue += tfIdfValue;
                                     andHashMap.put(token,tfIdfValue);
                                 }
@@ -150,7 +150,7 @@ public class TFIDFSearch {
                                     tfIdfValue = orHashMap.get(token);
                                     totalTfIdfValue += tfIdfValue;
                                 } else {
-                                    tfIdfValue = tfIdfCalculate(docs.get(docID), docs, token, getRepeatTermCount(token, wholeIdfRoot, docID), wholeIdfRoot);
+                                    tfIdfValue = tfIdfCalculate(docSizeList.get(docID), docSizeList.size(), token, getRepeatTermCount(token, wholeIdfRoot, docID), wholeIdfRoot);
                                     totalTfIdfValue += tfIdfValue;
                                     orHashMap.put(token,tfIdfValue);
                                 }
@@ -173,7 +173,7 @@ public class TFIDFSearch {
 
                     if (contain) {
                         for (Integer docID : singleTokenIDSet) {
-                            tfIdfValue = tfIdfCalculate(docs.get(docID), docs, argument, getRepeatTermCount(argument,wholeIdfRoot, docID), wholeIdfRoot);
+                            tfIdfValue = tfIdfCalculate(docSizeList.get(docID), docSizeList.size(), argument, getRepeatTermCount(argument,wholeIdfRoot, docID), wholeIdfRoot);
                             tfIdfList.add(new TfIdf(tfIdfValue, docID));
                             tfIdfValue = 0;
                         }
@@ -246,13 +246,13 @@ public class TFIDFSearch {
         }
     }
 
-    public static double tf(List<String> doc, String term, double termCountInDoc) {
+    public static double tf(int currentDocSize, String term, double termCountInDoc) {
         double number_term_in_doc = termCountInDoc;
 
-        return number_term_in_doc / doc.size();
+        return number_term_in_doc / currentDocSize;
     }
 
-    public static double idf(List<List<String>> docs, String term, Trie wholeIdfRoot) {
+    public static double idf(int wholeDocsSize, String term, Trie wholeIdfRoot) {
         int number_doc_contain_term = 0;
 
         if (wholeIdfRoot.search(term)) {
@@ -263,11 +263,11 @@ public class TFIDFSearch {
             return 0;
         }
 
-        return Math.log((double)docs.size() / number_doc_contain_term);
+        return Math.log((double)wholeDocsSize / number_doc_contain_term);
     }
     
-    public static double tfIdfCalculate(List<String> doc, List<List<String>> docs, String term, double termCountInDoc, Trie wholeIdfRoot) {
-        return tf(doc, term, termCountInDoc) * idf(docs, term, wholeIdfRoot);
+    public static double tfIdfCalculate(int currentDocSize, int wholeDocsSize, String term, double termCountInDoc, Trie wholeIdfRoot) {
+        return tf(currentDocSize, term, termCountInDoc) * idf(wholeDocsSize, term, wholeIdfRoot);
     }
 
 }
