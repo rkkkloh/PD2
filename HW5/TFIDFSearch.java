@@ -125,7 +125,7 @@ public class TFIDFSearch {
                             andHashMap.clear();
                             totalTfIdfValue = 0;
                         }
-                        intersection.clear();    
+                        intersection.clear();
                     }
                     tokenSetList.clear();
                     stringArgumentSet.clear();
@@ -211,11 +211,8 @@ public class TFIDFSearch {
                 writer.write("\n");
                 writer.close();
                 tfIdfList.clear();
-
             }
-            
             argumentReader.close();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
