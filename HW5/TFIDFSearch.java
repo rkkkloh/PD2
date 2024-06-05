@@ -85,15 +85,11 @@ public class TFIDFSearch {
 
                     for (String token : stringArgumentArray) {
                         if (wholeIdfRoot.search(token)) {
-                            HashSet<Integer> tokenIDSet = new HashSet<>();
-                            for (int j = 0;j < wholeIdfRoot.getDocID(token).size(); j++) {
-                                if (!stringArgumentSet.contains(token)) {
-                                    tokenIDSet.add(wholeIdfRoot.getDocID(token).get(j));
-                                } else {
-                                    break;
+                            if (!stringArgumentSet.contains(token)) {
+                                HashSet<Integer> tokenIDSet = new HashSet<>();
+                                for (int j = 0;j < wholeIdfRoot.getDocID(token).size(); j++) {
+                                        tokenIDSet.add(wholeIdfRoot.getDocID(token).get(j));
                                 }
-                            }
-                            if (tokenIDSet.size() != 0) {
                                 tokenSetList.add(tokenIDSet);
                             }
                             stringArgumentSet.add(token);
@@ -125,7 +121,7 @@ public class TFIDFSearch {
                             andHashMap.clear();
                             totalTfIdfValue = 0;
                         }
-                        intersection.clear();
+                        intersection.clear();    
                     }
                     tokenSetList.clear();
                     stringArgumentSet.clear();
@@ -135,11 +131,9 @@ public class TFIDFSearch {
                     
                     for (String token : stringArgumentArray) {
                         if (wholeIdfRoot.search(token)) {
-                            for (int j = 0;j < wholeIdfRoot.getDocID(token).size(); j++) {
-                                if (!stringArgumentSet.contains(token)) {
+                            if (!stringArgumentSet.contains(token)) {
+                                for (int j = 0;j < wholeIdfRoot.getDocID(token).size(); j++) {
                                     orTokenIDSet.add(wholeIdfRoot.getDocID(token).get(j));
-                                } else {
-                                    break;
                                 }
                             }
                             stringArgumentSet.add(token);
@@ -211,8 +205,11 @@ public class TFIDFSearch {
                 writer.write("\n");
                 writer.close();
                 tfIdfList.clear();
+
             }
+            
             argumentReader.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
