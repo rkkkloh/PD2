@@ -86,10 +86,7 @@ public class TFIDFSearch {
                     for (String token : stringArgumentArray) {
                         if (wholeIdfRoot.search(token)) {
                             if (!stringArgumentSet.contains(token)) {
-                                HashSet<Integer> tokenIDSet = new HashSet<>();
-                                for (int j = 0;j < wholeIdfRoot.getDocID(token).size(); j++) {
-                                        tokenIDSet.add(wholeIdfRoot.getDocID(token).get(j));
-                                }
+                                HashSet<Integer> tokenIDSet = new HashSet<>(wholeIdfRoot.getDocID(token));
                                 tokenSetList.add(tokenIDSet);
                             }
                             stringArgumentSet.add(token);
@@ -132,9 +129,7 @@ public class TFIDFSearch {
                     for (String token : stringArgumentArray) {
                         if (wholeIdfRoot.search(token)) {
                             if (!stringArgumentSet.contains(token)) {
-                                for (int j = 0;j < wholeIdfRoot.getDocID(token).size(); j++) {
-                                    orTokenIDSet.add(wholeIdfRoot.getDocID(token).get(j));
-                                }
+                                orTokenIDSet.addAll(wholeIdfRoot.getDocID(token));
                             }
                             stringArgumentSet.add(token);
                         }
@@ -161,9 +156,7 @@ public class TFIDFSearch {
                     stringArgumentSet.clear();
                 } else {
                     if (wholeIdfRoot.search(argument)) {
-                        for (int j = 0;j < wholeIdfRoot.getDocID(argument).size(); j++) {
-                            singleTokenIDSet.add(wholeIdfRoot.getDocID(argument).get(j));
-                        }
+                        singleTokenIDSet = new HashSet<>(wholeIdfRoot.getDocID(argument));
                     } else {
                         contain = false;
                     }
